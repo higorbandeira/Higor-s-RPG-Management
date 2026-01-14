@@ -1,6 +1,8 @@
 import uuid
 from sqlalchemy import Column, String, DateTime, ForeignKey, func
+
 from app.db.base import Base
+
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"

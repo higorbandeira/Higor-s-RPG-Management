@@ -1,17 +1,25 @@
-from pydantic import BaseModel
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-class Settings(BaseModel):
-    ENV: str = os.getenv("ENV", "dev")  # dev | prod
 
-    JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-secret")
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    ACCESS_MINUTES: int = int(os.getenv("ACCESS_MINUTES", "15"))
-    REFRESH_DAYS: int = int(os.getenv("REFRESH_DAYS", "30"))
-    COOKIE_SECURE: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+    # Environment
+    ENV: str = "dev"  # dev | prod
 
-    BOOTSTRAP_ADMIN_ENABLED: bool = os.getenv("BOOTSTRAP_ADMIN_ENABLED", "true").lower() == "true"
-    BOOTSTRAP_ADMIN_NICKNAME: str | None = os.getenv("BOOTSTRAP_ADMIN_NICKNAME")
-    BOOTSTRAP_ADMIN_PASSWORD: str | None = os.getenv("BOOTSTRAP_ADMIN_PASSWORD")
+    # Database
+    DATABASE_URL: str = "postgresql+psycopg2://postgres:postgres@db:5432/higor"
+
+    # Auth
+    JWT_SECRET: str = "dev-secret"
+    ACCESS_MINUTES: int = 15
+    REFRESH_DAYS: int = 30
+
+    COOKIE_SECURE: bool = False
+
+    BOOTSTRAP_ADMIN_ENABLED: bool = True
+    BOOTSTRAP_ADMIN_NICKNAME: str | None = None
+    BOOTSTRAP_ADMIN_PASSWORD: str | None = None
+
 
 settings = Settings()

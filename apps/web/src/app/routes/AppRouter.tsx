@@ -1,13 +1,27 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
-import { LoginPage } from "../../features/auth/pages/LoginPage";
-import { DashboardPage } from "../../features/dashboard/pages/DashboardPage";
-import { UsersListPage } from "../../features/admin/pages/UsersListPage";
-import { UserEditPage } from "../../features/admin/pages/UserEditPage";
+import { useAuth } from "@/app/providers/AuthProvider";
+
+import { LoginPage } from "@/features/auth/pages/LoginPage";
+import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
+import { UsersListPage } from "@/features/admin/pages/UsersListPage";
+import { UserEditPage } from "@/features/admin/pages/UserEditPage";
+
+function RootRedirect() {
+  const { me, loading } = useAuth();
+  if (loading) return null;
+  if (!me) return <Navigate to="/login" replace />;
+  return me.role === "ADMIN" ? (
+    <Navigate to="/admin/users" replace />
+  ) : (
+    <Navigate to="/dashboard" replace />
+  );
+}
 
 export function AppRouter() {
   return (
     <Routes>
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<LoginPage />} />
 
       <Route
@@ -37,9 +51,7 @@ export function AppRouter() {
         }
       />
 
-      {/* default */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

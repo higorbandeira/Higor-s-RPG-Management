@@ -1,24 +1,50 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import auth, admin_users, assets
+
+from app.core.bootstrap import bootstrap_admin, BootstrapError
+from app.core.config import settings
 from app.db.session import SessionLocal
-from app.core.bootstrap import bootstrap_admin
+from app.routers import auth_router, admin_users_router, assets_router
 
-app = FastAPI()
 
-@app.on_event("startup")
-def on_startup():
-    db = SessionLocal()
-    try:
-        bootstrap_admin(db)
-    except BootstrapError as e:
-        # em prod isso vai derrubar o startup, como desejado
-        raise RuntimeError(str(e))
-    finally:
-        db.close()
+def create_app() -> FastAPI:
+    app = FastAPI(title="Higor API")
 
-app.include_router(auth.router)
-app.include_router(admin_users.router)
-app.include_router(assets.router)
+    # CORS: in prod we'll usually be same-origin behind nginx.
+    allow_origins = [
+        "http://localhost:5173",  # Vite dev
+        "http://localhost:3000",  # nginx web (optional)
+    ] if settings.ENV == "dev" else []
 
-app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allow_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # API under /api
+    app.include_router(auth_router, prefix="/api")
+    app.include_router(admin_users_router, prefix="/api")
+    app.include_router(assets_router, prefix="/api")
+
+    # Serve local uploads
+    app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+
+    @app.on_event("startup")
+    def _startup():
+        db = SessionLocal()
+        try:
+            bootstrap_admin(db)
+        except BootstrapError as e:
+            # In prod this should crash the app.
+            raise RuntimeError(str(e))
+        finally:
+            db.close()
+
+    return app
+
+
+app = create_app()
