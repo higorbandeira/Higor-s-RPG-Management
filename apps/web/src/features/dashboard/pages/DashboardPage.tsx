@@ -188,7 +188,8 @@ export function DashboardPage() {
   }
 
   function handleAddAvatarFrom(asset: Asset) {
-    const { maxX, maxY } = getBoardBounds();
+    const initialSize = 2;
+    const { maxX, maxY } = getBoardBounds(initialSize);
     const avatarId = `${asset.id}-${Date.now()}`;
     setPlacedAvatars((prev) => [
       ...prev,
@@ -199,7 +200,7 @@ export function DashboardPage() {
         fileUrl: asset.fileUrl,
         x: clamp(GRID_SIZE, 0, maxX),
         y: clamp(GRID_SIZE, 0, maxY),
-        size: 1,
+        size: initialSize,
         hpTotal: 10,
         hpCurrent: 10,
       },
@@ -632,7 +633,7 @@ export function DashboardPage() {
                           <img
                             src={mapAsset.fileUrl}
                             alt={mapAsset.name}
-                            style={{ width: "100%", height: 90, objectFit: "cover", borderRadius: 12 }}
+                            style={{ width: "100%", height: 72, objectFit: "cover", borderRadius: 12 }}
                           />
                           <div style={{ marginTop: 6, fontSize: 13, color: isDark ? "#f5f5f5" : "#111111" }}>
                             {mapAsset.name}
@@ -692,7 +693,7 @@ export function DashboardPage() {
                           <img
                             src={avatar.fileUrl}
                             alt={avatar.name}
-                            style={{ width: "100%", height: 80, objectFit: "cover", borderRadius: 12 }}
+                            style={{ width: "100%", height: 72, objectFit: "cover", borderRadius: 12 }}
                           />
                           <div style={{ marginTop: 6, fontSize: 12, color: isDark ? "#f5f5f5" : "#111111" }}>
                             {avatar.name}
@@ -986,14 +987,15 @@ export function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      const nextSize = Math.max(2, activeAvatar.size - 1);
                       setPlacedAvatars((prev) =>
                         prev.map((avatar) =>
                           avatar.id === activeAvatar.id
                             ? {
                                 ...avatar,
-                                size: Math.max(0.5, avatar.size - 0.25),
-                                x: clamp(avatar.x, 0, getBoardBounds(Math.max(0.5, avatar.size - 0.25)).maxX),
-                                y: clamp(avatar.y, 0, getBoardBounds(Math.max(0.5, avatar.size - 0.25)).maxY),
+                                size: nextSize,
+                                x: clamp(avatar.x, 0, getBoardBounds(nextSize).maxX),
+                                y: clamp(avatar.y, 0, getBoardBounds(nextSize).maxY),
                               }
                             : avatar
                         )
@@ -1006,18 +1008,19 @@ export function DashboardPage() {
                   >
                     -
                   </button>
-                  <div style={{ minWidth: 40, textAlign: "center" }}>{activeAvatar.size.toFixed(2)}x</div>
+                  <div style={{ minWidth: 40, textAlign: "center" }}>{activeAvatar.size * activeAvatar.size}</div>
                   <button
                     type="button"
                     onClick={() => {
+                      const nextSize = Math.min(4, activeAvatar.size + 1);
                       setPlacedAvatars((prev) =>
                         prev.map((avatar) =>
                           avatar.id === activeAvatar.id
                             ? {
                                 ...avatar,
-                                size: Math.min(3, avatar.size + 0.25),
-                                x: clamp(avatar.x, 0, getBoardBounds(Math.min(3, avatar.size + 0.25)).maxX),
-                                y: clamp(avatar.y, 0, getBoardBounds(Math.min(3, avatar.size + 0.25)).maxY),
+                                size: nextSize,
+                                x: clamp(avatar.x, 0, getBoardBounds(nextSize).maxX),
+                                y: clamp(avatar.y, 0, getBoardBounds(nextSize).maxY),
                               }
                             : avatar
                         )
