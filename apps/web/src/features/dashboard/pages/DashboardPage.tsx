@@ -244,6 +244,23 @@ export function DashboardPage() {
   }
 
   function handlePointerUp() {
+    if (dragState) {
+      setPlacedAvatars((prev) =>
+        prev.map((avatar) => {
+          if (avatar.id !== dragState.avatarId) {
+            return avatar;
+          }
+          const snappedX = Math.round(avatar.x / GRID_SIZE) * GRID_SIZE;
+          const snappedY = Math.round(avatar.y / GRID_SIZE) * GRID_SIZE;
+          const bounds = getBoardBounds(avatar.size);
+          return {
+            ...avatar,
+            x: clamp(snappedX, 0, bounds.maxX),
+            y: clamp(snappedY, 0, bounds.maxY),
+          };
+        })
+      );
+    }
     setDragState(null);
   }
 
@@ -307,6 +324,7 @@ export function DashboardPage() {
   }, [selectedMapId, placedAvatars, mapViews]);
 
   const isDark = theme === "dark";
+  const gridColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)";
   const pageStyle = {
     minHeight: "100vh",
     background: isDark ? "#0b0b0b" : "#f5f5f5",
@@ -368,6 +386,11 @@ export function DashboardPage() {
             fontSize: 10,
             color: isDark ? "#f5f5f5" : "#111111",
             zIndex: 12,
+            background: isDark ? "#111111" : "#ffffff",
+            border: isDark ? "1px solid #2b2b2b" : "1px solid #e0e0e0",
+            borderRadius: 999,
+            padding: "6px 12px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.12)",
           }}
         >
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
@@ -404,11 +427,11 @@ export function DashboardPage() {
             outline: "none",
             backgroundColor: isDark ? "#0f0f0f" : "#f8f8f8",
             backgroundImage: selectedMap
-              ? `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
-                 linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px),
+              ? `linear-gradient(to right, ${gridColor} 1px, transparent 1px),
+                 linear-gradient(to bottom, ${gridColor} 1px, transparent 1px),
                  url(${selectedMap.fileUrl})`
-              : `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
-                 linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+              : `linear-gradient(to right, ${gridColor} 1px, transparent 1px),
+                 linear-gradient(to bottom, ${gridColor} 1px, transparent 1px)`,
             backgroundSize: selectedMap
               ? `${GRID_SIZE}px ${GRID_SIZE}px, ${GRID_SIZE}px ${GRID_SIZE}px, ${currentMapView.scale}%`
               : `${GRID_SIZE}px ${GRID_SIZE}px, ${GRID_SIZE}px ${GRID_SIZE}px`,
@@ -817,6 +840,21 @@ export function DashboardPage() {
               />
 
               <div style={{ display: "grid", gap: 12 }}>
+                <div
+                  style={{
+                    borderRadius: 16,
+                    border: isDark ? "1px solid #2b2b2b" : "1px solid #e0e0e0",
+                    overflow: "hidden",
+                    height: 180,
+                    backgroundColor: isDark ? "#0f0f0f" : "#f8f8f8",
+                    backgroundImage: `linear-gradient(to right, ${gridColor} 1px, transparent 1px),
+                      linear-gradient(to bottom, ${gridColor} 1px, transparent 1px),
+                      url(${selectedMap.fileUrl})`,
+                    backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px, ${GRID_SIZE}px ${GRID_SIZE}px, ${currentMapView.scale}%`,
+                    backgroundPosition: `0 0, 0 0, ${currentMapView.x}% ${currentMapView.y}%`,
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
                 <label style={labelStyle}>Escala (%)</label>
                 <input
                   type="range"

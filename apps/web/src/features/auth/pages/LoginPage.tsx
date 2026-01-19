@@ -53,6 +53,11 @@ export function LoginPage() {
           gap: 12,
           fontSize: 10,
           color: theme === "light" ? "#111111" : "#f5f5f5",
+          background: theme === "light" ? "#ffffff" : "#111111",
+          border: theme === "light" ? "1px solid #e0e0e0" : "1px solid #2b2b2b",
+          borderRadius: 999,
+          padding: "6px 12px",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.12)",
         }}
       >
         <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>

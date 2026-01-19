@@ -110,6 +110,11 @@ export function UsersListPage() {
           gap: 12,
           fontSize: 10,
           color: isDark ? "#f5f5f5" : "#111111",
+          background: isDark ? "#111111" : "#ffffff",
+          border: isDark ? "1px solid #2b2b2b" : "1px solid #e0e0e0",
+          borderRadius: 999,
+          padding: "6px 12px",
+          boxShadow: "0 8px 16px rgba(0,0,0,0.12)",
         }}
       >
         <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
