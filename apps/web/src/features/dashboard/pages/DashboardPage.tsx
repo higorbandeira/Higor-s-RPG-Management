@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
-import { http } from "@/shared/api/http";
+import { getAccessToken, http } from "@/shared/api/http";
 
 type Asset = {
   id: string;
@@ -27,12 +27,11 @@ type DragState = {
 };
 
 const GRID_SIZE = 40;
-const BOARD_WIDTH = 900;
-const BOARD_HEIGHT = 480;
-
 export function DashboardPage() {
   const { me, logout } = useAuth();
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const suppressNextSync = useRef(false);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [type, setType] = useState<"MAP" | "AVATAR">("MAP");
   const [name, setName] = useState("");
@@ -54,6 +53,38 @@ export function DashboardPage() {
   useEffect(() => {
     loadAssets();
   }, []);
+
+  useEffect(() => {
+    if (!me || wsRef.current) return;
+    const token = getAccessToken();
+    if (!token) return;
+    const wsUrl = `${window.location.origin.replace("http", "ws")}/api/ws/board?token=${token}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message?.type === "state" && message?.payload) {
+          suppressNextSync.current = true;
+          setSelectedMapId(message.payload.selectedMapId ?? "");
+          setPlacedAvatars(message.payload.placedAvatars ?? []);
+        }
+      } catch {
+        // ignore invalid payloads
+      }
+    };
+
+    ws.onclose = () => {
+      if (wsRef.current === ws) {
+        wsRef.current = null;
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [me]);
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   const maps = useMemo(() => assets.filter((asset) => asset.type === "MAP"), [assets]);
@@ -109,6 +140,7 @@ export function DashboardPage() {
   }
 
   function handleAddAvatarFrom(asset: Asset) {
+    const { maxX, maxY } = getBoardBounds();
     const avatarId = `${asset.id}-${Date.now()}`;
     setPlacedAvatars((prev) => [
       ...prev,
@@ -117,8 +149,8 @@ export function DashboardPage() {
         assetId: asset.id,
         name: asset.name,
         fileUrl: asset.fileUrl,
-        x: GRID_SIZE,
-        y: GRID_SIZE,
+        x: clamp(GRID_SIZE, 0, maxX),
+        y: clamp(GRID_SIZE, 0, maxY),
       },
     ]);
     setActiveAvatarId(avatarId);
@@ -147,13 +179,14 @@ export function DashboardPage() {
     const rect = board.getBoundingClientRect();
     const nextX = event.clientX - rect.left - dragState.offsetX;
     const nextY = event.clientY - rect.top - dragState.offsetY;
+    const { maxX, maxY } = getBoardBounds();
     setPlacedAvatars((prev) =>
       prev.map((avatar) =>
         avatar.id === dragState.avatarId
           ? {
               ...avatar,
-              x: clamp(nextX, 0, BOARD_WIDTH - GRID_SIZE),
-              y: clamp(nextY, 0, BOARD_HEIGHT - GRID_SIZE),
+              x: clamp(nextX, 0, maxX),
+              y: clamp(nextY, 0, maxY),
             }
           : avatar
       )
@@ -179,18 +212,48 @@ export function DashboardPage() {
         : null;
     if (!delta) return;
     event.preventDefault();
+    const { maxX, maxY } = getBoardBounds();
     setPlacedAvatars((prev) =>
       prev.map((avatar) =>
         avatar.id === activeAvatarId
           ? {
               ...avatar,
-              x: clamp(avatar.x + delta.x, 0, BOARD_WIDTH - GRID_SIZE),
-              y: clamp(avatar.y + delta.y, 0, BOARD_HEIGHT - GRID_SIZE),
+              x: clamp(avatar.x + delta.x, 0, maxX),
+              y: clamp(avatar.y + delta.y, 0, maxY),
             }
           : avatar
       )
     );
   }
+
+  function getBoardBounds() {
+    const board = boardRef.current;
+    if (!board) {
+      return { maxX: 0, maxY: 0 };
+    }
+    return {
+      maxX: Math.max(board.clientWidth - GRID_SIZE, 0),
+      maxY: Math.max(board.clientHeight - GRID_SIZE, 0),
+    };
+  }
+
+  useEffect(() => {
+    if (suppressNextSync.current) {
+      suppressNextSync.current = false;
+      return;
+    }
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(
+      JSON.stringify({
+        type: "state",
+        payload: {
+          selectedMapId,
+          placedAvatars,
+        },
+      })
+    );
+  }, [selectedMapId, placedAvatars]);
 
   const pageStyle = {
     minHeight: "100vh",
