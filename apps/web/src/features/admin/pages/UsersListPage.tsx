@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/app/providers/AuthProvider";
 import { http } from "@/shared/api/http";
 
 type User = {
@@ -10,6 +11,7 @@ type User = {
 };
 
 export function UsersListPage() {
+  const { logout } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
@@ -77,13 +79,27 @@ export function UsersListPage() {
     fontWeight: 600,
     cursor: "pointer",
   };
+  const ghostButtonStyle = {
+    padding: "10px 18px",
+    borderRadius: 999,
+    border: "1px solid #111111",
+    background: "transparent",
+    color: "#111111",
+    fontWeight: 600,
+    cursor: "pointer",
+  };
 
   return (
     <div style={pageStyle}>
       <div style={containerStyle}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 28 }}>Painel Admin</h1>
-          <p style={{ marginTop: 8, color: "#616161" }}>Gerencie usuários e permissões com segurança.</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 28 }}>Painel Admin</h1>
+            <p style={{ marginTop: 8, color: "#616161" }}>Gerencie usuários e permissões com segurança.</p>
+          </div>
+          <button onClick={logout} style={ghostButtonStyle}>
+            Sair
+          </button>
         </div>
 
         <div style={cardStyle}>

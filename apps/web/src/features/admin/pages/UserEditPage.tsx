@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { http } from "@/shared/api/http";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 type User = {
   id: string;
@@ -12,6 +13,7 @@ type User = {
 export function UserEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [user, setUser] = useState<User | null>(null);
   const [nickname, setNickname] = useState("");
@@ -111,9 +113,14 @@ export function UserEditPage() {
   return (
     <div style={pageStyle}>
       <div style={containerStyle}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 28 }}>Editar USER</h1>
-          <p style={{ marginTop: 8, color: "#616161" }}>Atualize dados, status e senha do usuário.</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 28 }}>Editar USER</h1>
+            <p style={{ marginTop: 8, color: "#616161" }}>Atualize dados, status e senha do usuário.</p>
+          </div>
+          <button onClick={logout} style={ghostButtonStyle}>
+            Sair
+          </button>
         </div>
 
         <div style={cardStyle}>
