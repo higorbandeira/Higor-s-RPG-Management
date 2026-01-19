@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -6,8 +7,8 @@ class UserOut(BaseModel):
     nickname: str
     role: str
     is_active: bool = Field(alias="isActive")
-    created_at: str | None = Field(default=None, alias="createdAt")
-    updated_at: str | None = Field(default=None, alias="updatedAt")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
     class Config:
         populate_by_name = True
