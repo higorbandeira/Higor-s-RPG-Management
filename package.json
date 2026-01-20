@@ -1,5 +1,5 @@
 {
-  "name": "higor-monorepo",
+  "name": "higor-modulos-hub",
   "private": true,
   "workspaces": ["apps/web"],
   "scripts": {

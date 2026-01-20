@@ -2,9 +2,9 @@
 
 ## Objetivo do MVP
 Construir uma SPA web com:
-- Login por **nickname + senha**
+- Login por **nickname + senha** compartilhado entre módulos
 - Autorização por roles: **USER** e **ADMIN**
-- USER acessa **/dashboard** (tabuleiro 2D em tempo real no futuro)
+- USER acessa o dashboard do módulo permitido (atualmente, `/dashboard`)
 - ADMIN acessa **/admin/users** (CRUD de usuários)
 - Upload de assets (mapas/avatares) por USER, visíveis para todos
 
@@ -22,6 +22,7 @@ Construir uma SPA web com:
 - Refresh: `/api/auth/refresh` lê cookie e retorna novo `accessToken`
 - `refresh_token` é armazenado no banco **como hash (sha256)**
 - `withCredentials: true` no client para enviar cookie
+- **Pendência:** o login ainda não direciona o usuário para o dashboard correto do módulo com base nas permissões.
 
 ### Roles
 - **ADMIN**
@@ -51,7 +52,7 @@ Construir uma SPA web com:
 - `/dashboard` (USER)
 - `/admin/users` (ADMIN)
 - `/admin/users/:id` (ADMIN)
-- `/(root)` redireciona por role
+- `/(root)` redireciona por role (pendente para múltiplos módulos)
 
 ## Bootstrap do ADMIN
 - Estratégia: ENV var no startup
@@ -60,8 +61,9 @@ Construir uma SPA web com:
   - ENV=prod: se faltar nickname/senha ou nickname inválido/conflitante → falha e aplicação não sobe
 
 ## Próximos Passos Prioritários
-1. Criar telas mínimas (Login, Dashboard, Admin Users, Edit User)
-2. Validar fluxo completo: bootstrap admin → login → redirect por role
-3. Garantir CRUD funcional de usuários via painel admin
-4. Implementar upload de assets no dashboard (UI simples)
-5. Só então iniciar implementação real do grid 2D
+1. Implementar roteamento por permissões para o módulo correto
+2. Criar telas mínimas (Login, Dashboard, Admin Users, Edit User)
+3. Validar fluxo completo: bootstrap admin → login → redirect por role
+4. Garantir CRUD funcional de usuários via painel admin
+5. Implementar upload de assets no dashboard (UI simples)
+6. Só então iniciar implementação real do grid 2D
