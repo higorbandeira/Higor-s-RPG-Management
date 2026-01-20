@@ -1,9 +1,11 @@
 """init
 
 Revision ID: 0001_init
-Revises: 
-Create Date: 2026-01-12
+Revises:
+Create Date: 2026-01-13
+
 """
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -11,6 +13,7 @@ revision = "0001_init"
 down_revision = None
 branch_labels = None
 depends_on = None
+
 
 def upgrade():
     op.create_table(
@@ -44,13 +47,19 @@ def upgrade():
         sa.Column("type", sa.String(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("file_url", sa.String(), nullable=False),
-        sa.Column("uploaded_by_user_id", sa.String(), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "uploaded_by_user_id",
+            sa.String(),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("width_cells", sa.Integer(), nullable=True),
         sa.Column("height_cells", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
     )
     op.create_index("ix_assets_type", "assets", ["type"])
     op.create_index("ix_assets_uploaded_by_user_id", "assets", ["uploaded_by_user_id"])
+
 
 def downgrade():
     op.drop_index("ix_assets_uploaded_by_user_id", table_name="assets")
